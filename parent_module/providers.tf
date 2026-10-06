@@ -6,9 +6,9 @@ terraform {
     }
   }
   backend "azurerm" {
-    resource_group_name  = "AzureBackupRG_eastus_1"
-    storage_account_name = "ditfstore1"
-    container_name       = "sunny"
+    resource_group_name  = "rgsept"
+    storage_account_name = "resuableaction"
+    container_name       = "finalaction"
     key                  = "dev.tfstate"
   }
 }
