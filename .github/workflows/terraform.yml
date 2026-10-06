@@ -3,7 +3,7 @@ name: Terraform Azure CI/CD
 on:
   push:
     branches:
-      - feature/nikita
+      - feature/miumiu
       - main
 
   pull_request:
