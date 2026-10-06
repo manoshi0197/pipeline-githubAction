@@ -1,0 +1,88 @@
+name: Terraform Azure CI/CD
+
+on:
+  push:
+    branches:
+      - feature/nikita
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+
+  terraform-check:
+    name: Terraform Format, Validate, Scan & Plan
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        working-directory: ./parent_module
+        run: terraform init
+
+      - name: Terraform Format Check
+        working-directory: ./parent_module
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        working-directory: ./parent_module
+        run: terraform validate
+
+      # - name: Terraform Security Scan
+      #   working-directory: ./parent_module
+      #   run: tfsec .
+
+      - name: Terraform Plan
+        working-directory: ./parent_module
+        run: |
+          terraform plan -input=false -no-color -out=tfplan
+          terraform show -no-color tfplan
+
+
+  terraform-apply:
+    name: Terraform Apply
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        working-directory: ./parent_module
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: ./parent_module
+        run: terraform apply -auto-approve
